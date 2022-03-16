@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import API from "../API";
+import { isPersistedState } from "../helpers";
 
 export const useMovieFetsh = (movieId) => {
   console.log(movieId);
@@ -8,7 +9,7 @@ export const useMovieFetsh = (movieId) => {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    (async () => {
+    const fetchMovie = async () => {
       try {
         setLoadind(true);
         setError(false);
@@ -31,8 +32,20 @@ export const useMovieFetsh = (movieId) => {
       } catch (error) {
         setError(true);
       }
-    })();
+    };
+    const sessionState = isPersistedState(movieId);
+    if (sessionState) {
+      setState(sessionState);
+      setLoadind(false);
+      return;
+    }
+    fetchMovie();
   }, [movieId]);
+
+  // write to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem(movieId, JSON.stringify(state));
+  }, [movieId, state]);
 
   return { state, loading, error };
 };
